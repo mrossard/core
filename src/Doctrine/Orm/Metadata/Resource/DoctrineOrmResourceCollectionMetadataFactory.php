@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\Orm\Metadata\Resource;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\EntityClassItemProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\ApiResource;
@@ -104,6 +105,9 @@ final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMeta
             return CollectionProvider::class;
         }
 
+        if (($options = $operation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
+            return EntityClassItemProvider::class;
+        }
         return ItemProvider::class;
     }
 

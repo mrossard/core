@@ -46,6 +46,7 @@ final class ItemProvider implements ProviderInterface
         $entityClass = $operation->getClass();
         if (($options = $operation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
             $entityClass = $options->getEntityClass();
+            $operation = $operation->withClass($options->getEntityClass());
         }
 
         /** @var EntityManagerInterface $manager */

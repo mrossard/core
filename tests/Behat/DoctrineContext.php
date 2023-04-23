@@ -139,6 +139,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Foo;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\FooDummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\FourthLevel;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Greeting;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\HumanReadableIdEntity;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\InitializeInput;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\InternalUser;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\IriOnlyDummy;
@@ -181,6 +182,9 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Entity\VideoGame;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\WithJsonDummy;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
+use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Query\Builder;
@@ -190,8 +194,14 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use Exception;
+use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 use Symfony\Component\Uid\Uuid as SymfonyUuid;
+use function in_array;
+use function is_object;
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Defines application features from the specific context.
@@ -249,12 +259,12 @@ final class DoctrineContext implements Context
 
         $actualDql = $manager::$dql;
 
-        $expectedDql = preg_replace('/\(\R */', '(', (string) $dql);
+        $expectedDql = preg_replace('/\(\R */', '(', (string)$dql);
         $expectedDql = preg_replace('/\R *\)/', ')', $expectedDql);
         $expectedDql = preg_replace('/\R */', ' ', $expectedDql);
 
         if ($expectedDql !== $actualDql) {
-            throw new \RuntimeException("The DQL:\n'$actualDql' is not equal to:\n'$expectedDql'");
+            throw new RuntimeException("The DQL:\n'$actualDql' is not equal to:\n'$expectedDql'");
         }
     }
 
@@ -267,11 +277,11 @@ final class DoctrineContext implements Context
 
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
-            $dummy->setDummy('SomeDummyTest'.$i);
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
+            $dummy->setDummy('SomeDummyTest' . $i);
             $dummy->setDescription($descriptions[($i - 1) % 2]);
-            $dummy->nameConverted = 'Converted '.$i;
+            $dummy->nameConverted = 'Converted ' . $i;
 
             $this->manager->persist($dummy);
         }
@@ -299,7 +309,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $soMany = $this->buildSoMany();
-            $soMany->content = 'Many #'.$i;
+            $soMany->content = 'Many #' . $i;
 
             $this->manager->persist($soMany);
         }
@@ -374,7 +384,7 @@ final class DoctrineContext implements Context
             $dummyGroup = $this->buildDummyGroup();
 
             foreach (['foo', 'bar', 'baz', 'qux'] as $property) {
-                $dummyGroup->{$property} = ucfirst($property).' #'.$i;
+                $dummyGroup->{$property} = ucfirst($property) . ' #' . $i;
             }
 
             $this->manager->persist($dummyGroup);
@@ -393,7 +403,7 @@ final class DoctrineContext implements Context
             $dummyGroup = $this->buildDummyGroup();
 
             foreach (['foo', 'bar', 'baz'] as $property) {
-                $dummyProperty->{$property} = $dummyGroup->{$property} = ucfirst($property).' #'.$i;
+                $dummyProperty->{$property} = $dummyGroup->{$property} = ucfirst($property) . ' #' . $i;
             }
             $dummyProperty->nameConverted = "NameConverted #$i";
 
@@ -413,7 +423,7 @@ final class DoctrineContext implements Context
     {
         $dummyGroup = $this->buildDummyGroup();
         foreach (['foo', 'bar', 'baz'] as $property) {
-            $dummyGroup->{$property} = ucfirst($property).' #shared';
+            $dummyGroup->{$property} = ucfirst($property) . ' #shared';
         }
         $this->manager->persist($dummyGroup);
 
@@ -421,7 +431,7 @@ final class DoctrineContext implements Context
             $dummyProperty = $this->buildDummyProperty();
 
             foreach (['foo', 'bar', 'baz'] as $property) {
-                $dummyProperty->{$property} = ucfirst($property).' #'.$i;
+                $dummyProperty->{$property} = ucfirst($property) . ' #' . $i;
             }
 
             $dummyProperty->group = $dummyGroup;
@@ -442,7 +452,7 @@ final class DoctrineContext implements Context
             $dummyProperty = $this->buildDummyProperty();
 
             foreach (['foo', 'bar', 'baz'] as $property) {
-                $dummyProperty->{$property} = $dummyGroup->{$property} = ucfirst($property).' #'.$i;
+                $dummyProperty->{$property} = $dummyGroup->{$property} = ucfirst($property) . ' #' . $i;
             }
 
             $this->manager->persist($dummyGroup);
@@ -468,7 +478,7 @@ final class DoctrineContext implements Context
             $dummyGroup = $this->buildDummyGroup();
 
             foreach (['foo', 'bar', 'baz'] as $property) {
-                $dummyProperty->{$property} = $dummyGroup->{$property} = ucfirst($property).' #'.$i;
+                $dummyProperty->{$property} = $dummyGroup->{$property} = ucfirst($property) . ' #' . $i;
             }
 
             $dummyProperty->group = $dummyGroup;
@@ -478,7 +488,7 @@ final class DoctrineContext implements Context
                 $dummyGroup = $this->buildDummyGroup();
 
                 foreach (['foo', 'bar', 'baz'] as $property) {
-                    $dummyGroup->{$property} = ucfirst($property).' #'.$i.$j;
+                    $dummyGroup->{$property} = ucfirst($property) . ' #' . $i . $j;
                 }
 
                 $dummyProperty->groups[] = $dummyGroup;
@@ -498,10 +508,10 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildEmbeddedDummy();
-            $dummy->setName('Dummy #'.$i);
+            $dummy->setName('Dummy #' . $i);
 
             $embeddableDummy = $this->buildEmbeddableDummy();
-            $embeddableDummy->setDummyName('Dummy #'.$i);
+            $embeddableDummy->setDummyName('Dummy #' . $i);
             $dummy->setEmbeddedDummy($embeddableDummy);
 
             $this->manager->persist($dummy);
@@ -517,11 +527,11 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $relatedDummy = $this->buildRelatedDummy();
-            $relatedDummy->setName('RelatedDummy #'.$i);
+            $relatedDummy->setName('RelatedDummy #' . $i);
 
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->nameConverted = "Converted $i";
             $dummy->setRelatedDummy($relatedDummy);
 
@@ -567,7 +577,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $dummyDto = $this->buildDummyDtoNoInput();
-            $dummyDto->lorem = 'DummyDtoNoInput foo #'.$i;
+            $dummyDto->lorem = 'DummyDtoNoInput foo #' . $i;
             $dummyDto->ipsum = round($i / 3, 2);
 
             $this->manager->persist($dummyDto);
@@ -583,8 +593,8 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $dummyDto = $this->buildDummyDtoNoOutput();
-            $dummyDto->lorem = 'DummyDtoNoOutput foo #'.$i;
-            $dummyDto->ipsum = (string) ($i / 3);
+            $dummyDto->lorem = 'DummyDtoNoOutput foo #' . $i;
+            $dummyDto->ipsum = (string)($i / 3);
 
             $this->manager->persist($dummyDto);
         }
@@ -628,8 +638,8 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setJsonData(['foo' => ['bar', 'baz'], 'bar' => 5]);
             $dummy->setArrayData(['foo', 'bar', 'baz']);
 
@@ -664,12 +674,12 @@ final class DoctrineContext implements Context
             $thirdLevel = $this->buildThirdLevel();
 
             $relatedDummy = $this->buildRelatedDummy();
-            $relatedDummy->setName('RelatedDummy #'.$i);
+            $relatedDummy->setName('RelatedDummy #' . $i);
             $relatedDummy->setThirdLevel($thirdLevel);
 
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setRelatedDummy($relatedDummy);
 
             $this->manager->persist($thirdLevel);
@@ -692,7 +702,7 @@ final class DoctrineContext implements Context
             $thirdLevel = $this->buildThirdLevel();
 
             $relatedDummy = $this->buildRelatedDummy();
-            $relatedDummy->setName('RelatedDummy #'.$i);
+            $relatedDummy->setName('RelatedDummy #' . $i);
             $relatedDummy->setThirdLevel($thirdLevel);
 
             $dummy->addRelatedDummy($relatedDummy);
@@ -715,7 +725,7 @@ final class DoctrineContext implements Context
 
         for ($i = 1; $i <= $nb; ++$i) {
             $relatedDummy = $this->buildRelatedDummy();
-            $relatedDummy->setName('RelatedDummy #'.$i);
+            $relatedDummy->setName('RelatedDummy #' . $i);
             $relatedDummy->setThirdLevel($thirdLevel);
 
             $dummy->addRelatedDummy($relatedDummy);
@@ -734,10 +744,10 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $embeddableDummy = $this->buildEmbeddableDummy();
-            $embeddableDummy->setDummyName('EmbeddedDummy #'.$i);
+            $embeddableDummy->setDummyName('EmbeddedDummy #' . $i);
 
             $dummy = $this->buildEmbeddedDummy();
-            $dummy->setName('Dummy #'.$i);
+            $dummy->setName('Dummy #' . $i);
             $dummy->setEmbeddedDummy($embeddableDummy);
 
             $this->manager->persist($dummy);
@@ -753,13 +763,13 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
 
             for ($j = 1; $j <= $nbrelated; ++$j) {
                 $relatedDummy = $this->buildRelatedDummy();
-                $relatedDummy->setName('RelatedDummy'.$j.$i);
-                $relatedDummy->setAge((int) ($j.$i));
+                $relatedDummy->setName('RelatedDummy' . $j . $i);
+                $relatedDummy->setAge((int)($j . $i));
                 $this->manager->persist($relatedDummy);
 
                 $dummy->addRelatedDummy($relatedDummy);
@@ -772,21 +782,22 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there are :nb multiRelationsDummy objects having each a manyToOneRelation, :nbmtmr manyToManyRelations and :nbotmr oneToManyRelations
+     * @Given there are :nb multiRelationsDummy objects having each a manyToOneRelation, :nbmtmr manyToManyRelations
+     *        and :nbotmr oneToManyRelations
      */
     public function thereAreMultiRelationsDummyObjectsHavingEachAManyToOneRelationManyToManyRelationsAndOneToManyRelations(int $nb, int $nbmtmr, int $nbotmr): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $relatedDummy = $this->buildMultiRelationsRelatedDummy();
-            $relatedDummy->name = 'RelatedManyToOneDummy #'.$i;
+            $relatedDummy->name = 'RelatedManyToOneDummy #' . $i;
 
             $dummy = $this->buildMultiRelationsDummy();
-            $dummy->name = 'Dummy #'.$i;
+            $dummy->name = 'Dummy #' . $i;
             $dummy->setManyToOneRelation($relatedDummy);
 
             for ($j = 1; $j <= $nbmtmr; ++$j) {
                 $manyToManyItem = $this->buildMultiRelationsRelatedDummy();
-                $manyToManyItem->name = 'RelatedManyToManyDummy'.$j.$i;
+                $manyToManyItem->name = 'RelatedManyToManyDummy' . $j . $i;
                 $this->manager->persist($manyToManyItem);
 
                 $dummy->addManyToManyRelation($manyToManyItem);
@@ -794,7 +805,7 @@ final class DoctrineContext implements Context
 
             for ($j = 1; $j <= $nbotmr; ++$j) {
                 $oneToManyItem = $this->buildMultiRelationsRelatedDummy();
-                $oneToManyItem->name = 'RelatedOneToManyDummy'.$j.$i;
+                $oneToManyItem->name = 'RelatedOneToManyDummy' . $j . $i;
                 $oneToManyItem->setOneToManyRelation($dummy);
                 $this->manager->persist($oneToManyItem);
 
@@ -832,11 +843,11 @@ final class DoctrineContext implements Context
         $descriptions = ['Smart dummy.', 'Not so smart dummy.'];
 
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setDescription($descriptions[($i - 1) % 2]);
 
             // Last Dummy has a null date
@@ -857,21 +868,21 @@ final class DoctrineContext implements Context
     {
         $descriptions = ['Smart dummy.', 'Not so smart dummy.'];
 
-        if (\in_array($bool, ['true', '1', 1], true)) {
+        if (in_array($bool, ['true', '1', 1], true)) {
             $bool = true;
-        } elseif (\in_array($bool, ['false', '0', 0], true)) {
+        } elseif (in_array($bool, ['false', '0', 0], true)) {
             $bool = false;
         } else {
             $expected = ['true', 'false', '1', '0'];
-            throw new \InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
+            throw new InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
         }
 
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setDescription($descriptions[($i - 1) % 2]);
             $dummy->setDummyBoolean($bool);
 
@@ -892,15 +903,15 @@ final class DoctrineContext implements Context
     public function thereAreDummyObjectsWithDummyDateAndRelatedDummy(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $relatedDummy = $this->buildRelatedDummy();
-            $relatedDummy->setName('RelatedDummy #'.$i);
+            $relatedDummy->setName('RelatedDummy #' . $i);
             $relatedDummy->setDummyDate($date);
 
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setRelatedDummy($relatedDummy);
             // Last Dummy has a null date
             if ($nb !== $i) {
@@ -920,14 +931,14 @@ final class DoctrineContext implements Context
     public function thereAreDummyObjectsWithDummyDateAndEmbeddedDummy(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $embeddableDummy = $this->buildEmbeddableDummy();
-            $embeddableDummy->setDummyName('Embeddable #'.$i);
+            $embeddableDummy->setDummyName('Embeddable #' . $i);
             $embeddableDummy->setDummyDate($date);
 
             $dummy = $this->buildEmbeddedDummy();
-            $dummy->setName('Dummy #'.$i);
+            $dummy->setName('Dummy #' . $i);
             $dummy->setEmbeddedDummy($embeddableDummy);
             // Last Dummy has a null date
             if ($nb !== $i) {
@@ -947,7 +958,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $convertedDate = $this->buildConvertedDate();
-            $convertedDate->nameConverted = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $convertedDate->nameConverted = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $this->manager->persist($convertedDate);
         }
@@ -977,7 +988,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $convertedBoolean = $this->buildConvertedBoolean();
-            $convertedBoolean->nameConverted = (bool) ($i % 2);
+            $convertedBoolean->nameConverted = (bool)($i % 2);
 
             $this->manager->persist($convertedBoolean);
         }
@@ -1010,8 +1021,8 @@ final class DoctrineContext implements Context
 
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setDescription($descriptions[($i - 1) % 2]);
             $dummy->setDummyPrice($prices[($i - 1) % 4]);
 
@@ -1027,20 +1038,20 @@ final class DoctrineContext implements Context
      */
     public function thereAreDummyObjectsWithDummyBoolean(int $nb, string $bool): void
     {
-        if (\in_array($bool, ['true', '1', 1], true)) {
+        if (in_array($bool, ['true', '1', 1], true)) {
             $bool = true;
-        } elseif (\in_array($bool, ['false', '0', 0], true)) {
+        } elseif (in_array($bool, ['false', '0', 0], true)) {
             $bool = false;
         } else {
             $expected = ['true', 'false', '1', '0'];
-            throw new \InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
+            throw new InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
         }
         $descriptions = ['Smart dummy.', 'Not so smart dummy.'];
 
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildDummy();
-            $dummy->setName('Dummy #'.$i);
-            $dummy->setAlias('Alias #'.($nb - $i));
+            $dummy->setName('Dummy #' . $i);
+            $dummy->setAlias('Alias #' . ($nb - $i));
             $dummy->setDescription($descriptions[($i - 1) % 2]);
             $dummy->setDummyBoolean($bool);
 
@@ -1055,20 +1066,20 @@ final class DoctrineContext implements Context
      */
     public function thereAreDummyObjectsWithEmbeddedDummyBoolean(int $nb, string $bool): void
     {
-        if (\in_array($bool, ['true', '1', 1], true)) {
+        if (in_array($bool, ['true', '1', 1], true)) {
             $bool = true;
-        } elseif (\in_array($bool, ['false', '0', 0], true)) {
+        } elseif (in_array($bool, ['false', '0', 0], true)) {
             $bool = false;
         } else {
             $expected = ['true', 'false', '1', '0'];
-            throw new \InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
+            throw new InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
         }
 
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildEmbeddedDummy();
-            $dummy->setName('Embedded Dummy #'.$i);
+            $dummy->setName('Embedded Dummy #' . $i);
             $embeddableDummy = $this->buildEmbeddableDummy();
-            $embeddableDummy->setDummyName('Embedded Dummy #'.$i);
+            $embeddableDummy->setDummyName('Embedded Dummy #' . $i);
             $embeddableDummy->setDummyBoolean($bool);
             $dummy->setEmbeddedDummy($embeddableDummy);
             $this->manager->persist($dummy);
@@ -1082,20 +1093,20 @@ final class DoctrineContext implements Context
      */
     public function thereAreDummyObjectsWithRelationEmbeddedDummyBoolean(int $nb, string $bool): void
     {
-        if (\in_array($bool, ['true', '1', 1], true)) {
+        if (in_array($bool, ['true', '1', 1], true)) {
             $bool = true;
-        } elseif (\in_array($bool, ['false', '0', 0], true)) {
+        } elseif (in_array($bool, ['false', '0', 0], true)) {
             $bool = false;
         } else {
             $expected = ['true', 'false', '1', '0'];
-            throw new \InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
+            throw new InvalidArgumentException(sprintf('Invalid boolean value for "%s" property, expected one of ( "%s" )', $bool, implode('" | "', $expected)));
         }
 
         for ($i = 1; $i <= $nb; ++$i) {
             $dummy = $this->buildEmbeddedDummy();
-            $dummy->setName('Embedded Dummy #'.$i);
+            $dummy->setName('Embedded Dummy #' . $i);
             $embeddableDummy = $this->buildEmbeddableDummy();
-            $embeddableDummy->setDummyName('Embedded Dummy #'.$i);
+            $embeddableDummy->setDummyName('Embedded Dummy #' . $i);
             $embeddableDummy->setDummyBoolean($bool);
 
             $relationDummy = $this->buildRelatedDummy();
@@ -1197,7 +1208,7 @@ final class DoctrineContext implements Context
 
         for ($i = 0; $i < 4; ++$i) {
             $label = $this->buildCompositeLabel();
-            $label->setValue('foo-'.$i);
+            $label->setValue('foo-' . $i);
 
             $rel = $this->buildCompositeRelation();
             $rel->setCompositeLabel($label);
@@ -1252,11 +1263,11 @@ final class DoctrineContext implements Context
         $foo = $this->buildDummyCar();
         $foo->setName('mustli');
         $foo->setCanSell(true);
-        $foo->setAvailableAt(new \DateTime());
+        $foo->setAvailableAt(new DateTime());
         $this->manager->persist($foo);
         $this->manager->flush();
 
-        if (\is_object($foo->getId())) {
+        if (is_object($foo->getId())) {
             $this->manager->persist($foo->getId());
             $this->manager->flush();
         }
@@ -1286,7 +1297,7 @@ final class DoctrineContext implements Context
         $car = $this->buildDummyCar();
         $car->setName('model x');
         $car->setCanSell(true);
-        $car->setAvailableAt(new \DateTime());
+        $car->setAvailableAt(new DateTime());
         $this->manager->persist($car);
 
         $passenger = $this->buildDummyPassenger();
@@ -1314,7 +1325,7 @@ final class DoctrineContext implements Context
 
         for ($i = 1; $i <= $nb; ++$i) {
             $friend = $this->buildDummyFriend();
-            $friend->setName('Friend-'.$i);
+            $friend->setName('Friend-' . $i);
 
             $this->manager->persist($friend);
             // since doctrine 2.6 we need existing identifiers on relations
@@ -1322,7 +1333,7 @@ final class DoctrineContext implements Context
             $this->manager->flush();
 
             $relation = $this->buildRelatedToDummyFriend();
-            $relation->setName('Relation-'.$i);
+            $relation->setName('Relation-' . $i);
             $relation->setDummyFriend($friend);
             $relation->setRelatedDummy($relatedDummy);
 
@@ -1406,7 +1417,7 @@ final class DoctrineContext implements Context
         for ($i = $count + 1; $i <= $nb; ++$i) {
             $program = $this->isOrm() ? new Program() : new ProgramDocument();
             $program->name = "Lorem ipsum $i";
-            $program->date = new \DateTimeImmutable(sprintf('2015-03-0%dT10:00:00+00:00', $i));
+            $program->date = new DateTimeImmutable(sprintf('2015-03-0%dT10:00:00+00:00', $i));
             $program->author = $author;
 
             $this->manager->persist($program);
@@ -1445,7 +1456,7 @@ final class DoctrineContext implements Context
         } else {
             /** @var Builder $qb */
             $qb = $this->doctrine->getRepository(CommentDocument::class)
-                                 ->createQueryBuilder('f');
+                ->createQueryBuilder('f');
 
             $count = $qb->field('author')->equals($author)
                 ->count()->getQuery()->execute();
@@ -1454,7 +1465,7 @@ final class DoctrineContext implements Context
         for ($i = $count + 1; $i <= $nb; ++$i) {
             $comment = $this->isOrm() ? new Comment() : new CommentDocument();
             $comment->comment = "Lorem ipsum dolor sit amet $i";
-            $comment->date = new \DateTimeImmutable(sprintf('2015-03-0%dT10:00:00+00:00', $i));
+            $comment->date = new DateTimeImmutable(sprintf('2015-03-0%dT10:00:00+00:00', $i));
             $comment->author = $author;
 
             $this->manager->persist($comment);
@@ -1471,7 +1482,7 @@ final class DoctrineContext implements Context
     {
         $user = $this->doctrine->getRepository($this->isOrm() ? User::class : UserDocument::class)->find($user);
         if (!$this->passwordHasher->isPasswordValid($user, $password)) {
-            throw new \Exception('User password mismatch');
+            throw new Exception('User password mismatch');
         }
     }
 
@@ -1536,7 +1547,7 @@ final class DoctrineContext implements Context
     public function thereAreDummyDateObjectsWithDummyDate(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $dummy = $this->buildDummyDate();
             $dummy->dummyDate = $date;
@@ -1554,7 +1565,7 @@ final class DoctrineContext implements Context
     public function thereAreDummyDateObjectsWithNullableDateIncludeNullAfter(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $dummy = $this->buildDummyDate();
             $dummy->dummyDate = $date;
@@ -1573,7 +1584,7 @@ final class DoctrineContext implements Context
     public function thereAreDummyDateObjectsWithNullableDateIncludeNullBefore(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $dummy = $this->buildDummyDate();
             $dummy->dummyDate = $date;
@@ -1592,7 +1603,7 @@ final class DoctrineContext implements Context
     public function thereAreDummyDateObjectsWithNullableDateIncludeNullBeforeAndAfter(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTime(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTime(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
 
             $dummy = $this->buildDummyDate();
             $dummy->dummyDate = $date;
@@ -1610,7 +1621,7 @@ final class DoctrineContext implements Context
     public function thereAreDummyImmutableDateObjectsWithDummyDate(int $nb): void
     {
         for ($i = 1; $i <= $nb; ++$i) {
-            $date = new \DateTimeImmutable(sprintf('2015-04-%d', $i), new \DateTimeZone('UTC'));
+            $date = new DateTimeImmutable(sprintf('2015-04-%d', $i), new DateTimeZone('UTC'));
             $dummy = $this->buildDummyImmutableDate();
             $dummy->dummyDate = $date;
 
@@ -1627,8 +1638,8 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $dummyDifferentGraphQlSerializationGroup = $this->buildDummyDifferentGraphQlSerializationGroup();
-            $dummyDifferentGraphQlSerializationGroup->setName('Name #'.$i);
-            $dummyDifferentGraphQlSerializationGroup->setTitle('Title #'.$i);
+            $dummyDifferentGraphQlSerializationGroup->setName('Name #' . $i);
+            $dummyDifferentGraphQlSerializationGroup->setTitle('Title #' . $i);
             $this->manager->persist($dummyDifferentGraphQlSerializationGroup);
         }
 
@@ -1754,7 +1765,7 @@ final class DoctrineContext implements Context
 
         for ($i = 1; $i <= $level; ++$i) {
             $maxDepthDummy = $maxDepthDummy->child = $this->buildMaxDepthDummy();
-            $maxDepthDummy->name = 'level '.($i + 1);
+            $maxDepthDummy->name = 'level ' . ($i + 1);
             $this->manager->persist($maxDepthDummy);
         }
 
@@ -1777,7 +1788,7 @@ final class DoctrineContext implements Context
         for ($i = 0; $i < $nb; ++$i) {
             $dto = $this->isOrm() ? new DummyDtoCustom() : new DummyDtoCustomDocument();
             $dto->lorem = 'test';
-            $dto->ipsum = (string) ($i + 1);
+            $dto->ipsum = (string)($i + 1);
             $this->manager->persist($dto);
         }
 
@@ -1859,7 +1870,7 @@ final class DoctrineContext implements Context
      */
     public function thereIsTheFollowingTaxon(PyStringNode $dataNode): void
     {
-        $data = json_decode((string) $dataNode, true, 512, \JSON_THROW_ON_ERROR);
+        $data = json_decode((string)$dataNode, true, 512, JSON_THROW_ON_ERROR);
 
         $taxon = $this->isOrm() ? new Taxon() : new TaxonDocument();
         $taxon->setCode($data['code']);
@@ -1873,7 +1884,7 @@ final class DoctrineContext implements Context
      */
     public function thereIsTheFollowingProduct(PyStringNode $dataNode): void
     {
-        $data = json_decode((string) $dataNode, true, 512, \JSON_THROW_ON_ERROR);
+        $data = json_decode((string)$dataNode, true, 512, JSON_THROW_ON_ERROR);
 
         $product = $this->isOrm() ? new Product() : new ProductDocument();
         $product->setCode($data['code']);
@@ -1896,7 +1907,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $related = $this->buildConvertedRelated();
-            $related->nameConverted = 'Converted '.$i;
+            $related->nameConverted = 'Converted ' . $i;
 
             $owner = $this->buildConvertedOwner();
             $owner->nameConverted = $related;
@@ -1915,7 +1926,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $relatedDummy = $this->buildRelatedDummy();
-            $relatedDummy->setName('RelatedDummy #'.$i);
+            $relatedDummy->setName('RelatedDummy #' . $i);
 
             $dummyMercure = $this->buildDummyMercure();
             $dummyMercure->name = "Dummy Mercure #$i";
@@ -1936,7 +1947,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $iriOnlyDummy = $this->buildIriOnlyDummy();
-            $iriOnlyDummy->setFoo('bar'.$nb);
+            $iriOnlyDummy->setFoo('bar' . $nb);
             $this->manager->persist($iriOnlyDummy);
         }
 
@@ -2047,7 +2058,7 @@ final class DoctrineContext implements Context
     {
         for ($i = 1; $i <= $nb; ++$i) {
             $entity = new SeparatedEntity();
-            $entity->value = (string) $i;
+            $entity->value = (string)$i;
             $this->manager->persist($entity);
         }
         $this->manager->flush();
@@ -2134,7 +2145,19 @@ final class DoctrineContext implements Context
     public function thereIsAResourceUsingEntityClassAndDateTime(): void
     {
         $entity = new EntityClassWithDateTime();
-        $entity->setStart(new \DateTime());
+        $entity->setStart(new DateTime());
+        $this->manager->persist($entity);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a resource using a readable id instead of its entity's ORM id
+     */
+    public function thereIsAHumanReadbleIdEntity(): void
+    {
+        $entity = new HumanReadableIdEntity();
+        $entity->setName('some entity');
+        $entity->setBusinessId('businessId');
         $this->manager->persist($entity);
         $this->manager->flush();
     }

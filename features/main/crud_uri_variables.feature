@@ -212,3 +212,11 @@ Feature: Uri Variables
     Given there are 1 separated entities
     When I send a "GET" request to "/entityClassAndCustomProviderResources/1"
     Then the response status code should be 200
+
+  @createSchema
+  @!mongodb
+  Scenario: Get one HumanReadableIdResource
+    Given there is a resource using a readable id instead of its entity's ORM id
+    When I send a "GET" request to "/resourceWithBusinessId/businessId"
+    Then print last JSON response
+    Then the response status code should be 200

@@ -18,8 +18,10 @@ use ApiPlatform\State\OptionsInterface;
 class Options implements OptionsInterface
 {
     public function __construct(
-        protected ?string $entityClass = null,
-    ) {
+        protected ?string                  $entityClass = null,
+        protected ?ResourceMapperInterface $mapper = null,
+    )
+    {
     }
 
     public function getEntityClass(): ?string
@@ -33,5 +35,10 @@ class Options implements OptionsInterface
         $self->entityClass = $entityClass;
 
         return $self;
+    }
+
+    public function getMapper(): ?ResourceMapperInterface
+    {
+        return $this->mapper;
     }
 }
