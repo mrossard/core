@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Orm\State;
 
+use ApiPlatform\Doctrine\Common\State\EntityTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryResultCollectionExtensionInterface;
@@ -35,6 +36,7 @@ final class CollectionProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
+    use EntityTransformerLocatorTrait;
 
     /**
      * @param QueryCollectionExtensionInterface[] $collectionExtensions
@@ -43,6 +45,7 @@ final class CollectionProvider implements ProviderInterface
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->handleLinksLocator = $handleLinksLocator;
+        $this->transformEntityLocator = $handleLinksLocator;
         $this->managerRegistry = $managerRegistry;
     }
 
@@ -74,10 +77,16 @@ final class CollectionProvider implements ProviderInterface
             $extension->applyToCollection($queryBuilder, $queryNameGenerator, $entityClass, $operation, $context);
 
             if ($extension instanceof QueryResultCollectionExtensionInterface && $extension->supportsResult($entityClass, $operation, $context)) {
-                return $extension->getResult($queryBuilder, $entityClass, $operation, $context);
+                $result = $extension->getResult($queryBuilder, $entityClass, $operation, $context);
+                break;
             }
         }
 
-        return $queryBuilder->getQuery()->getResult();
+        $result = $result ?? $queryBuilder->getQuery()->getResult();
+
+        return match($transformer = $this->getEntityTransformer($operation)){
+            null => $result,
+            default => array_map($transformer, iterator_to_array($result))
+        };
     }
 }

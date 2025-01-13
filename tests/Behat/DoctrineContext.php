@@ -199,6 +199,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Entity\SoMany;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\SymfonyUuidDummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Taxon;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\ThirdLevel;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\TransformedDummyEntity;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\TreeDummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\UrlEncodedId;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\User;
@@ -2322,6 +2323,15 @@ final class DoctrineContext implements Context
         $entity->name = 'test2';
         $entity->bar = 'test';
         $this->manager->persist($entity);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a TransformedDummyEntity object for date :date
+     */
+    public function thereIsATransformedDummyEntity(string $date): void
+    {
+        $this->manager->persist(new TransformedDummyEntity(new \DateTimeImmutable($date)));
         $this->manager->flush();
     }
 
