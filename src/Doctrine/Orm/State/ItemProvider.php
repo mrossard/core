@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Orm\State;
 
+use ApiPlatform\Doctrine\Common\State\EntityTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryResultItemExtensionInterface;
@@ -35,6 +36,7 @@ final class ItemProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
+    use EntityTransformerLocatorTrait;
 
     /**
      * @param QueryItemExtensionInterface[] $itemExtensions
@@ -43,6 +45,7 @@ final class ItemProvider implements ProviderInterface
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->handleLinksLocator = $handleLinksLocator;
+        $this->transformEntityLocator = $handleLinksLocator;
         $this->managerRegistry = $managerRegistry;
     }
 
@@ -80,10 +83,16 @@ final class ItemProvider implements ProviderInterface
             $extension->applyToItem($queryBuilder, $queryNameGenerator, $entityClass, $uriVariables, $operation, $context);
 
             if ($extension instanceof QueryResultItemExtensionInterface && $extension->supportsResult($entityClass, $operation, $context)) {
-                return $extension->getResult($queryBuilder, $entityClass, $operation, $context);
+                $result = $extension->getResult($queryBuilder, $entityClass, $operation, $context);
+                break;
             }
         }
 
-        return $queryBuilder->getQuery()->getOneOrNullResult();
+        $result = $result ?? $queryBuilder->getQuery()->getOneOrNullResult();
+
+        return match($transformer = $this->getEntityTransformer($operation)){
+            null => $result,
+            default=> $transformer($result)
+        };
     }
 }

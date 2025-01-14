@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Odm\State;
 
+use ApiPlatform\Doctrine\Common\State\EntityTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultCollectionExtensionInterface;
@@ -32,6 +33,7 @@ final class CollectionProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
+    use EntityTransformerLocatorTrait;
 
     /**
      * @param AggregationCollectionExtensionInterface[] $collectionExtensions
@@ -40,6 +42,7 @@ final class CollectionProvider implements ProviderInterface
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->handleLinksLocator = $handleLinksLocator;
+        $this->transformEntityLocator = $handleLinksLocator;
         $this->managerRegistry = $managerRegistry;
     }
 
@@ -70,13 +73,19 @@ final class CollectionProvider implements ProviderInterface
             $extension->applyToCollection($aggregationBuilder, $documentClass, $operation, $context);
 
             if ($extension instanceof AggregationResultCollectionExtensionInterface && $extension->supportsResult($documentClass, $operation, $context)) {
-                return $extension->getResult($aggregationBuilder, $documentClass, $operation, $context);
+                $result =  $extension->getResult($aggregationBuilder, $documentClass, $operation, $context);
+                break;
             }
         }
 
         $attribute = $operation->getExtraProperties()['doctrine_mongodb'] ?? [];
         $executeOptions = $attribute['execute_options'] ?? [];
 
-        return $aggregationBuilder->hydrate($documentClass)->execute($executeOptions);
+        $result = $result ?? $aggregationBuilder->hydrate($documentClass)->execute($executeOptions);
+
+        return match($transformer = $this->getEntityTransformer($operation)){
+            null => $result,
+            default => array_map($transformer, iterator_to_array($result))
+        };
     }
 }
