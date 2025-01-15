@@ -52,6 +52,8 @@ class Options extends CommonOptions implements OptionsInterface
 
     public function withTransformDocument(mixed $transformDocument): self
     {
-        return $this->withTransformModel($transformDocument);
+        $self = clone $this;
+        $self->transformModel = $transformDocument;
+        return $self;
     }
 }
