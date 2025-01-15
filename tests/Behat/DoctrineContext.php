@@ -97,6 +97,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Document\SeparatedEntity as SeparatedE
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\SoMany as SoManyDocument;
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\Taxon as TaxonDocument;
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\ThirdLevel as ThirdLevelDocument;
+use ApiPlatform\Tests\Fixtures\TestBundle\Document\TransformedDummyDocument;
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\UrlEncodedId as UrlEncodedIdDocument;
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\User as UserDocument;
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\VideoGame as VideoGameDocument;
@@ -2331,7 +2332,7 @@ final class DoctrineContext implements Context
      */
     public function thereIsATransformedDummyEntity(string $date): void
     {
-        $this->manager->persist(new TransformedDummyEntity(new \DateTimeImmutable($date)));
+        $this->manager->persist($this->buildTransformedDummy(new \DateTimeImmutable($date)));
         $this->manager->flush();
     }
 
@@ -2713,5 +2714,10 @@ final class DoctrineContext implements Context
     private function buildLinkHandledDummy(string $slug): LinkHandledDummy|LinkHandledDummyDocument
     {
         return $this->isOrm() ? new LinkHandledDummy($slug) : new LinkHandledDummyDocument($slug);
+    }
+
+    private function buildTransformedDummy(\DateTimeImmutable $dateTime): TransformedDummyEntity|TransformedDummyDocument
+    {
+        return $this->isOrm() ? new TransformedDummyEntity($dateTime) : new TransformedDummyDocument($dateTime);
     }
 }
