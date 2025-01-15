@@ -19,7 +19,7 @@ use ApiPlatform\State\OptionsInterface;
 class Options extends CommonOptions implements OptionsInterface
 {
     /**
-     * @param string|callable $handleLinks experimental callable, typed mixed as we may want a service name in the future
+     * @param string|callable $handleLinks     experimental callable, typed mixed as we may want a service name in the future
      * @param string|callable $transformEntity experimental callable, typed mixed as we may want a service name in the future
      *
      * @see LinksHandlerInterface
@@ -27,7 +27,7 @@ class Options extends CommonOptions implements OptionsInterface
     public function __construct(
         protected ?string $entityClass = null,
         mixed $handleLinks = null,
-        mixed $transformEntity = null
+        mixed $transformEntity = null,
     ) {
         parent::__construct(handleLinks: $handleLinks, transformModel: $transformEntity);
     }
@@ -54,6 +54,7 @@ class Options extends CommonOptions implements OptionsInterface
     {
         $self = clone $this;
         $self->transformModel = $transformEntity;
+
         return $self;
     }
 }

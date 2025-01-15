@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Odm\State;
 
-use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultCollectionExtensionInterface;
 use ApiPlatform\Metadata\Exception\RuntimeException;
@@ -73,7 +73,7 @@ final class CollectionProvider implements ProviderInterface
             $extension->applyToCollection($aggregationBuilder, $documentClass, $operation, $context);
 
             if ($extension instanceof AggregationResultCollectionExtensionInterface && $extension->supportsResult($documentClass, $operation, $context)) {
-                $result =  $extension->getResult($aggregationBuilder, $documentClass, $operation, $context);
+                $result = $extension->getResult($aggregationBuilder, $documentClass, $operation, $context);
                 break;
             }
         }
@@ -83,9 +83,9 @@ final class CollectionProvider implements ProviderInterface
 
         $result = $result ?? $aggregationBuilder->hydrate($documentClass)->execute($executeOptions);
 
-        return match($transformer = $this->getEntityTransformer($operation)){
+        return match ($transformer = $this->getEntityTransformer($operation)) {
             null => $result,
-            default => array_map($transformer, iterator_to_array($result))
+            default => array_map($transformer, iterator_to_array($result)),
         };
     }
 }

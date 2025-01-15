@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Orm\State;
 
-use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryResultCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
@@ -84,9 +84,9 @@ final class CollectionProvider implements ProviderInterface
 
         $result = $result ?? $queryBuilder->getQuery()->getResult();
 
-        return match($transformer = $this->getEntityTransformer($operation)){
+        return match ($transformer = $this->getEntityTransformer($operation)) {
             null => $result,
-            default => array_map($transformer, iterator_to_array($result))
+            default => array_map($transformer, iterator_to_array($result)),
         };
     }
 }

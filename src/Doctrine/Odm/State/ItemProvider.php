@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Odm\State;
 
-use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationItemExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultItemExtensionInterface;
 use ApiPlatform\Metadata\Exception\RuntimeException;
@@ -90,9 +90,9 @@ final class ItemProvider implements ProviderInterface
 
         $result = $result ?? ($aggregationBuilder->hydrate($documentClass)->execute($executeOptions)->current() ?: null);
 
-        return match($transformer = $this->getEntityTransformer($operation)){
+        return match ($transformer = $this->getEntityTransformer($operation)) {
             null => $result,
-            default => ($result !== null)? $transformer($result) : null
+            default => (null !== $result) ? $transformer($result) : null,
         };
     }
 }

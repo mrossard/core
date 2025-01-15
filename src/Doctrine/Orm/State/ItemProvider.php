@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Orm\State;
 
-use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryResultItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
@@ -90,9 +90,9 @@ final class ItemProvider implements ProviderInterface
 
         $result = $result ?? $queryBuilder->getQuery()->getOneOrNullResult();
 
-        return match($transformer = $this->getEntityTransformer($operation)){
+        return match ($transformer = $this->getEntityTransformer($operation)) {
             null => $result,
-            default=> $transformer($result)
+            default => $transformer($result),
         };
     }
 }

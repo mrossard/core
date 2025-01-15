@@ -19,7 +19,7 @@ use ApiPlatform\State\OptionsInterface;
 class Options extends CommonOptions implements OptionsInterface
 {
     /**
-     * @param mixed $handleLinks experimental callable, typed mixed as we may want a service name in the future
+     * @param mixed $handleLinks       experimental callable, typed mixed as we may want a service name in the future
      * @param mixed $transformDocument experimental callable, typed mixed as we may want a service name in the future
      *
      * @see LinksHandlerInterface
@@ -54,6 +54,7 @@ class Options extends CommonOptions implements OptionsInterface
     {
         $self = clone $this;
         $self->transformModel = $transformDocument;
+
         return $self;
     }
 }

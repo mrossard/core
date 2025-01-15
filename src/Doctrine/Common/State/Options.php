@@ -22,7 +22,7 @@ class Options implements OptionsInterface
      */
     public function __construct(
         protected mixed $handleLinks = null,
-        protected mixed $transformModel = null
+        protected mixed $transformModel = null,
     ) {
     }
 
