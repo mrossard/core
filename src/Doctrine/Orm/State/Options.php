@@ -29,7 +29,7 @@ class Options extends CommonOptions implements OptionsInterface
         mixed $handleLinks = null,
         mixed $transformEntity = null
     ) {
-        parent::__construct(handleLinks: $handleLinks, transformEntity: $transformEntity);
+        parent::__construct(handleLinks: $handleLinks, transformModel: $transformEntity);
     }
 
     public function getEntityClass(): ?string
@@ -43,5 +43,15 @@ class Options extends CommonOptions implements OptionsInterface
         $self->entityClass = $entityClass;
 
         return $self;
+    }
+
+    public function getTransformDocument(): mixed
+    {
+        return $this->getTransformModel();
+    }
+
+    public function withTransformDocument(mixed $transformEntity): self
+    {
+        return $this->withTransformModel($transformEntity);
     }
 }

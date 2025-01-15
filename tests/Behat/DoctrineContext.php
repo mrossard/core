@@ -2328,7 +2328,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a TransformedDummyEntity object for date :date
+     * @Given there is a TransformedDummy for date :date
      */
     public function thereIsATransformedDummyEntity(string $date): void
     {

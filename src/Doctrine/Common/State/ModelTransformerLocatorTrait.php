@@ -8,7 +8,7 @@ use Psr\Container\ContainerInterface;
 /**
  * Maybe merge this and LinksHandlerLocatorTrait into a OptionsHooksLocatorTrait or something similar?
  */
-trait EntityTransformerLocatorTrait
+trait ModelTransformerLocatorTrait
 {
     private ?ContainerInterface $transformEntityLocator;
 
@@ -18,13 +18,13 @@ trait EntityTransformerLocatorTrait
             return null;
         }
 
-        $transformEntity = $options->getTransformEntity();
-        if (\is_callable($transformEntity)) {
-            return $transformEntity;
+        $transformModel = $options->getTransformModel();
+        if (\is_callable($transformModel)) {
+            return $transformModel;
         }
 
-        if ($this->transformEntityLocator && \is_string($transformEntity) && $this->transformEntityLocator->has($transformEntity)) {
-            return [$this->transformEntityLocator->get($transformEntity), 'transformEntity'];
+        if ($this->transformEntityLocator && \is_string($transformModel) && $this->transformEntityLocator->has($transformModel)) {
+            return [$this->transformEntityLocator->get($transformModel), 'transformModel'];
         }
 
         return null;

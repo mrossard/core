@@ -19,11 +19,10 @@ class Options implements OptionsInterface
 {
     /**
      * @param mixed $handleLinks experimental callable, typed mixed as we may want a service name in the future
-     * @param mixed $transformEntity experimental callable, typed mixed as we may want a service name in the future
      */
     public function __construct(
         protected mixed $handleLinks = null,
-        protected mixed $transformEntity = null,
+        protected mixed $transformModel = null
     ) {
     }
 
@@ -40,15 +39,15 @@ class Options implements OptionsInterface
         return $self;
     }
 
-    public function getTransformEntity(): mixed
+    public function getTransformModel(): mixed
     {
-        return $this->transformEntity;
+        return $this->transformModel;
     }
 
-    public function withTransformEntity(mixed $transformEntity): self
+    public function withTransformModel(mixed $transformModel): self
     {
         $self = clone $this;
-        $self->transformEntity = $transformEntity;
+        $self->transformModel = $transformModel;
 
         return $self;
     }

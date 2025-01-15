@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Odm\State;
 
-use ApiPlatform\Doctrine\Common\State\EntityTransformerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationItemExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultItemExtensionInterface;
@@ -36,7 +36,7 @@ final class ItemProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
-    use EntityTransformerLocatorTrait;
+    use ModelTransformerLocatorTrait;
 
     /**
      * @param AggregationItemExtensionInterface[] $itemExtensions

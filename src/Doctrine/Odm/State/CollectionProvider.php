@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Odm\State;
 
-use ApiPlatform\Doctrine\Common\State\EntityTransformerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultCollectionExtensionInterface;
@@ -33,7 +33,7 @@ final class CollectionProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
-    use EntityTransformerLocatorTrait;
+    use ModelTransformerLocatorTrait;
 
     /**
      * @param AggregationCollectionExtensionInterface[] $collectionExtensions
