@@ -19,10 +19,13 @@ class Options implements OptionsInterface
 {
     /**
      * @param mixed $handleLinks experimental callable, typed mixed as we may want a service name in the future
+     * @param mixed $toResourceTransformer experimental callable, typed mixed as we may want a service name in the future
+     * @param mixed $fromResourceTransformer experimental callable, typed mixed as we may want a service name in the future
      */
     public function __construct(
         protected mixed $handleLinks = null,
-        protected mixed $transformModel = null,
+        protected mixed $toResourceTransformer = null,
+        protected mixed $fromResourceTransformer = null,
     ) {
     }
 
@@ -39,15 +42,28 @@ class Options implements OptionsInterface
         return $self;
     }
 
-    public function getTransformModel(): mixed
+    public function getToResourceTransformer(): mixed
     {
-        return $this->transformModel;
+        return $this->toResourceTransformer;
     }
 
-    public function withTransformModel(mixed $transformModel): self
+    public function withToResourceTransformer(mixed $toResourceTransformer): self
     {
         $self = clone $this;
-        $self->transformModel = $transformModel;
+        $self->toResourceTransformer = $toResourceTransformer;
+
+        return $self;
+    }
+
+    public function getFromResourceTransformer(): mixed
+    {
+        return $this->fromResourceTransformer;
+    }
+
+    public function withFromResourceTransformer(mixed $fromResourceTransformer): self
+    {
+        $self = clone $this;
+        $self->fromResourceTransformer = $fromResourceTransformer;
 
         return $self;
     }

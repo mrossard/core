@@ -17,7 +17,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Tests\Fixtures\TestBundle\Document\TransformedDummyDocument;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\TransformedDummyEntity;
 
 #[ApiResource(
     operations : [
@@ -26,7 +25,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Entity\TransformedDummyEntity;
     ],
     stateOptions: new \ApiPlatform\Doctrine\Odm\State\Options(
         documentClass: TransformedDummyDocument::class,
-        transformDocument: [self::class, 'transformModel'],
+        transformFromDocument: [self::class, 'transformToResource'],
     )
 )]
 class TransformedDummyDocumentRessource
@@ -35,7 +34,7 @@ class TransformedDummyDocumentRessource
 
     public ?int $year = null;
 
-    public static function transformModel(TransformedDummyEntity|TransformedDummyDocument $model): self
+    public static function transformToResource(TransformedDummyDocument $model): self
     {
         $resource = new self();
         $resource->id = $model->getId();

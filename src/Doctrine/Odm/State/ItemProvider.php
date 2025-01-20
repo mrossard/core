@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\Odm\State;
 
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
-use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ResourceTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationItemExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultItemExtensionInterface;
 use ApiPlatform\Metadata\Exception\RuntimeException;
@@ -36,7 +36,7 @@ final class ItemProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
-    use ModelTransformerLocatorTrait;
+    use ResourceTransformerLocatorTrait;
 
     /**
      * @param AggregationItemExtensionInterface[] $itemExtensions
@@ -45,7 +45,7 @@ final class ItemProvider implements ProviderInterface
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->handleLinksLocator = $handleLinksLocator;
-        $this->transformEntityLocator = $handleLinksLocator;
+        $this->resourceTransformerLocator = $handleLinksLocator;
         $this->managerRegistry = $managerRegistry;
     }
 
@@ -90,7 +90,7 @@ final class ItemProvider implements ProviderInterface
 
         $result = $result ?? ($aggregationBuilder->hydrate($documentClass)->execute($executeOptions)->current() ?: null);
 
-        return match ($transformer = $this->getEntityTransformer($operation)) {
+        return match ($transformer = $this->getToResourceTransformer($operation)) {
             null => $result,
             default => (null !== $result) ? $transformer($result) : null,
         };

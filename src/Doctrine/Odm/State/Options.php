@@ -20,16 +20,16 @@ class Options extends CommonOptions implements OptionsInterface
 {
     /**
      * @param mixed $handleLinks       experimental callable, typed mixed as we may want a service name in the future
-     * @param mixed $transformDocument experimental callable, typed mixed as we may want a service name in the future
+     * @param mixed $transformFromDocument experimental callable, typed mixed as we may want a service name in the future
      *
      * @see LinksHandlerInterface
      */
     public function __construct(
         protected ?string $documentClass = null,
-        mixed $handleLinks = null,
-        mixed $transformDocument = null,
+        mixed             $handleLinks = null,
+        mixed             $transformFromDocument = null,
     ) {
-        parent::__construct(handleLinks: $handleLinks, transformModel: $transformDocument);
+        parent::__construct(handleLinks: $handleLinks, toResourceTransformer: $transformFromDocument);
     }
 
     public function getDocumentClass(): ?string
@@ -47,13 +47,13 @@ class Options extends CommonOptions implements OptionsInterface
 
     public function getTransformDocument(): mixed
     {
-        return $this->getTransformModel();
+        return $this->getToResourceTransformer();
     }
 
     public function withTransformDocument(mixed $transformDocument): self
     {
         $self = clone $this;
-        $self->transformModel = $transformDocument;
+        $self->toResourceTransformer = $transformDocument;
 
         return $self;
     }

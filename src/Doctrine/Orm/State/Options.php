@@ -20,16 +20,17 @@ class Options extends CommonOptions implements OptionsInterface
 {
     /**
      * @param string|callable $handleLinks     experimental callable, typed mixed as we may want a service name in the future
-     * @param string|callable $transformEntity experimental callable, typed mixed as we may want a service name in the future
+     * @param string|callable $transformFromEntity experimental callable, typed mixed as we may want a service name in the future
      *
      * @see LinksHandlerInterface
      */
     public function __construct(
         protected ?string $entityClass = null,
-        mixed $handleLinks = null,
-        mixed $transformEntity = null,
+        mixed             $handleLinks = null,
+        mixed             $transformFromEntity = null,
+        mixed             $transformToEntity = null,
     ) {
-        parent::__construct(handleLinks: $handleLinks, transformModel: $transformEntity);
+        parent::__construct(handleLinks: $handleLinks, toResourceTransformer: $transformFromEntity, fromResourceTransformer: $transformToEntity);
     }
 
     public function getEntityClass(): ?string
@@ -45,16 +46,30 @@ class Options extends CommonOptions implements OptionsInterface
         return $self;
     }
 
-    public function getTransformDocument(): mixed
+    public function getTransformFromEntity(): mixed
     {
-        return $this->getTransformModel();
+        return $this->getToResourceTransformer();
     }
 
-    public function withTransformDocument(mixed $transformEntity): self
+    public function withTransformFromEntity(mixed $transformFromEntity): self
     {
         $self = clone $this;
-        $self->transformModel = $transformEntity;
+        $self->toResourceTransformer = $transformFromEntity;
 
         return $self;
     }
+
+    public function getTransformToEntity(): mixed
+    {
+        return $this->getFromResourceTransformer();
+    }
+
+    public function withTransformToEntity(mixed $transformToEntity): self
+    {
+        $self = clone $this;
+        $self->fromResourceTransformer = $transformToEntity;
+
+        return $self;
+    }
+
 }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\Orm\State;
 
 use ApiPlatform\Doctrine\Common\State\LinksHandlerLocatorTrait;
-use ApiPlatform\Doctrine\Common\State\ModelTransformerLocatorTrait;
+use ApiPlatform\Doctrine\Common\State\ResourceTransformerLocatorTrait;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryResultItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
@@ -36,7 +36,7 @@ final class ItemProvider implements ProviderInterface
 {
     use LinksHandlerLocatorTrait;
     use LinksHandlerTrait;
-    use ModelTransformerLocatorTrait;
+    use ResourceTransformerLocatorTrait;
 
     /**
      * @param QueryItemExtensionInterface[] $itemExtensions
@@ -45,7 +45,7 @@ final class ItemProvider implements ProviderInterface
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->handleLinksLocator = $handleLinksLocator;
-        $this->transformEntityLocator = $handleLinksLocator;
+        $this->resourceTransformerLocator = $handleLinksLocator;
         $this->managerRegistry = $managerRegistry;
     }
 
@@ -90,7 +90,7 @@ final class ItemProvider implements ProviderInterface
 
         $result = $result ?? $queryBuilder->getQuery()->getOneOrNullResult();
 
-        return match ($transformer = $this->getEntityTransformer($operation)) {
+        return match ($transformer = $this->getToResourceTransformer($operation)) {
             null => $result,
             default => $transformer($result),
         };
